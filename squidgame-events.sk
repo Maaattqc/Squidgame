@@ -29,11 +29,11 @@ on death of player:
         set {_message} to yml value "Message_PlayerEliminatedByPlayer" from "messages"
         replace all "{VICTIM}" in {_message} with "%victim%"
         replace all "{ATTACKER}" in {_message} with "%attacker%"
-        send {_message} to {squidgame::players::*}
     else:
         set {_message} to yml value "Message_PlayerEliminated" from "messages"
         replace all "{VICTIM}" in {_message} with "%victim%"
-        send {_message} to {squidgame::players::*}
+        
+    send {_message} to {squidgame::players::*}
     set metadata "status" of victim to "spectator"
     force the victim to respawn
 
