@@ -5,7 +5,7 @@ function startRedLightGreenLight(world: world):
     {squidgame::status} is "game"
     send "{@Logo} %yml value "Message_RedLightGreenLight_Instruction" from "messages"%" to {squidgame::players::*}
     installBlock({_world}, barrier)
-    wait 2 seconds # 10
+    wait 2 seconds # 10 or more
     installBlock({_world}, air)
     startDoll()
 
