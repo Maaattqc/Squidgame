@@ -28,7 +28,7 @@ options:
 
 #Do not touch this part exept if you know what you are doing
 function commandManager(arg-1: text, p: player):
-    if {_arg-1} != set:
+    if {_arg-1} is not set:
         sendHelpMessage({_p})
     else if {_arg-1} = "setmainlobby":
         setLobbySquidgame({_p}, "main")   
@@ -180,6 +180,7 @@ function waitingToStartSquidgame():
                     startSquidgame()
                 else:
                     if size of {squidgame::players::*} <= 0:
+                        clear {squidgame::status}
                         stop
                     else:
                         send "{@Logo} %yml value "Message_MinimumPlayerNeeded" from "messages"%" to {squidgame::players::*}
@@ -274,14 +275,16 @@ command /r:
     trigger:
         make player execute command "/sk reload squidgame/"
 
+import:
+    java.io.BufferedReader
+    java.io.InputStreamReader
+    java.io.File
+    java.io.IOException
+    java.net.URL
+    java.util.Scanner
+    java.nio.file.Files
+    java.nio.file.Paths
+
 on load:
     load yaml "plugins/SquidGame/config.yml" as "config"
     load yaml "plugins/SquidGame/messages.yml" as "messages"
-    set {_skript} to "Squidgame"
-    if (text from "<https://pastebin.com/raw/FyTrfmdX>") != "{@Version}":
-        broadcast "Update, please wait! %{_skript}%"
-        download from "https://www.dropbox.com/sh/r5p6b7094csey15/AACgNUITOTvhzOR-5v3vr7PDa?dl=0" to "plugins/Skript/scripts/"
-        wait 5 ticks
-        execute console command "sk reload squidgame/%{_skript}%"
-        broadcast "Done."
-

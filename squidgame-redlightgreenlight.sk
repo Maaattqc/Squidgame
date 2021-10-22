@@ -122,5 +122,5 @@ function verifyMoving(p: player):
 command /getpack:  
     trigger:
         set {_url} to "https://www.dropbox.com/s/88t7pylm451c9oz/Squidgame.zip?dl=1"
-        player.setResourcePack({_url})
+        send the resource pack from "https://www.dropbox.com/s/88t7pylm451c9oz/Squidgame.zip?dl=1" to the player
         play sound "squidgame" with volume 1 to the player
