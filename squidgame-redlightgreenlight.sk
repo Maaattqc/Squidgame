@@ -1,0 +1,126 @@
+options:
+    Logo: &c[Squid Game]
+
+function startRedLightGreenLight(world: world):
+    {squidgame::status} is "game"
+    send "{@Logo} %yml value "Message_RedLightGreenLight_Instruction" from "messages"%" to {squidgame::players::*}
+    installBlock({_world}, barrier)
+    wait 2 seconds # 10
+    installBlock({_world}, air)
+    startDoll()
+
+function installBlock(world: world, blockType: itemtype):
+    loop blocks between {squidgame::redlightgreenlightbarrier1} and {squidgame::redlightgreenlightbarrier2}:
+        set {_blockLoc} to location of loop-block
+        set {_x} to x-coordinates of {_blockLoc}
+        set {_y} to y-coordinates of {_blockLoc}
+        set {_z} to z-coordinates of {_blockLoc}
+        set block at {_blockLoc} to {_blockType}
+        loop 5 times:
+            add 1 to {_y}
+            set {_loc} to location({_x}, {_y}, {_z}, world("%{_world}%"))
+            set block at {_loc} to {_blockType}
+
+function startDoll():
+    {squidgame::status} is "game"
+    startTimer()
+    while {squidgame::timer} is set:
+        if {squidgame::status} is "game":
+            set {_integer} to a random integer between 1 and 12
+
+            set {squidgame::canmove} to true
+            send "%yml value "Message_GreenLight" from "messages"%" to {squidgame::players::*}
+            send title "%yml value "Message_GreenLight" from "messages"%" with subtitle "" to {squidgame::players::*} for 1 seconds with fadein 0.1 second and fade out 0.7 second
+            play sound "rlgl%{_integer}%" with volume 0.4 to {squidgame::players::*}
+            set {_time} to getTimeFromMusic({_integer})
+            wait "%{_time}% seconds" parsed as timespan
+            {squidgame::status} is "game"
+
+            set {squidgame::canmove} to false
+            send "%yml value "Message_RedLight" from "messages"%" to {squidgame::players::*}
+            send title "%yml value "Message_RedLight" from "messages"%" with subtitle "" to {squidgame::players::*} for 1 seconds with fadein 0.1 second and fade out 0.7 second
+            wait 0.5 seconds
+            loop {squidgame::players::*}:
+                set {_x} to round x-coordinate of loop-value
+                set {_y} to round y-coordinate of loop-value
+                set {_z} to round z-coordinate of loop-value
+                set metadata "location" of loop-value to location({_x}, {_y}, {_z})
+                verifyMoving(loop-value)
+            play sound "rlgl_doll_analyse" with volume 0.4 to {squidgame::players::*}
+            set {_time} to getTimeFromMusic(0)
+            {squidgame::status} is "game"
+            wait "%{_time}% seconds" parsed as timespan
+
+            set {_number} to a random number between 0.1 and 1
+            wait "%{_number}% seconds" parsed as timespan
+        else:
+            stop
+    clear {squidgame::canmove}
+
+function startTimer():
+    set {squidgame::timer} to true
+    set {_timer} to yml value "Timer_RedLightGreenLight_InSeconds" from "config"
+    while {_timer} >= 1:
+        if {squidgame::status} is "game":
+            wait a second
+            set {_message} to yml value "Message_Timer_RedLightGreenLight" from "messages"
+            replace all "{TIMER}" in {_message} with "%{_timer}%"
+            send {_message} to {squidgame::players::*}
+            remove 1 from {_timer}
+        else:
+            stop
+    clear {squidgame::timer}
+    checkFinish()
+
+function getTimeFromMusic(rlglX: integer) :: number:
+    set {_time} to 0
+    if {_rlglX} = 0:
+        set {_time} to 3.13
+    else if {_rlglX} = 1:
+        set {_time} to 4.22
+    else if {_rlglX} = 2:
+        set {_time} to 4.13
+    else if {_rlglX} = 3:
+        set {_time} to 4.02
+    else if {_rlglX} = 4:
+        set {_time} to 3.24
+    else if {_rlglX} = 5:
+        set {_time} to 3.16
+    else if {_rlglX} = 6:
+        set {_time} to 3.00
+    else if {_rlglX} = 7:
+        set {_time} to 3.06
+    else if {_rlglX} = 8:
+        set {_time} to 2.27
+    else if {_rlglX} = 9:
+        set {_time} to 2.15
+    else if {_rlglX} = 10:
+        set {_time} to 2.06
+    else if {_rlglX} = 11:
+        set {_time} to 2.04
+    else if {_rlglX} = 12:
+        set {_time} to 1.16
+    add 0.3 to {_time}
+    return {_time}
+
+function verifyMoving(p: player):
+    while {squidgame::canmove} is false:
+        wait 5 ticks
+        {squidgame::canmove} is false
+        if {squidgame::status} is "game":
+            metadata "status" of {_p} is "game"
+            set {_x} to round x-coordinate of {_p}
+            set {_y} to round y-coordinate of {_p}
+            set {_z} to round z-coordinate of {_p}
+            set {_loc} to location({_x}, {_y}, {_z})
+            if "%metadata "location" of {_p}%" != "%{_loc}%":
+                block below {_p} is sand
+                killPlayer({_p})
+        else:
+            stop
+
+command /getpack:  
+    trigger:
+        set {_url} to "https://www.dropbox.com/s/88t7pylm451c9oz/Squidgame.zip?dl=1"
+        player.setResourcePack({_url})
+        play sound "squidgame" with volume 1 to the player

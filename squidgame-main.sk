@@ -1,0 +1,279 @@
+#Author MaatSK
+
+#{squidgame::players::*} list of players
+#{squidgame::spectators::*} list of players
+#{squidgame::status} ("queue" or "game" or "")
+#{squidgame::timer} true or none
+#{squidgame::canmove} boolean
+
+#{squidgame::mainLobby} location
+#{squidgame::dormLobby} location
+#{squidgame::redLightGreenLightLobby} location
+#{squidgame::redlightgreenlightbarrier1} location
+#{squidgame::redlightgreenlightbarrier2} location
+
+#metadata "status" of player ("game" or "queue" or "spectator")
+#metadata "location" of player (location)
+
+#bungeecord connection with option
+#option to yml file
+#create scoreboard
+#create npc and skin
+
+#============ MESSAGES IN GAME ============#
+options:
+    Logo: &c[Squid Game]
+#============ MESSAGES IN GAME ============#
+
+#Do not touch this part exept if you know what you are doing
+function commandManager(arg-1: text, p: player):
+    if {_arg-1} != set:
+        sendHelpMessage({_p})
+    else if {_arg-1} = "setmainlobby":
+        setLobbySquidgame({_p}, "main")   
+    else if {_arg-1} = "setdormlobby":
+        setLobbySquidgame({_p}, "dorm")  
+    else if {_arg-1} = "setredlightgreenlightlobby":
+        setLobbySquidgame({_p}, "redlightgreenlight")
+    else if {_arg-1} = "setredlightgreenlightbarrier1":
+        setRedLightGreenLightBarrier({_p}, 1)
+    else if {_arg-1} = "setredlightgreenlightbarrier2":
+        setRedLightGreenLightBarrier({_p}, 2)
+    else if {_arg-1} = "join":
+        joinSquidgame({_p})
+    else if {_arg-1} = "leave":
+        leaveSquidgame({_p})
+    else if {_arg-1} = "stop":
+        stopGame()    
+    else:
+        sendHelpMessage({_p})
+
+function sendHelpMessage(p: player):
+    if {_p} has permission yml value "Permission_Squidgame" from "config":
+        send "/squidgame setmainlobby" to {_p}
+        send "/squidgame setdormlobby" to {_p}
+        send "/squidgame setredlightgreenlightlobby" to {_p}
+        send "/squidgame setredlightgreenlightbarrier1" to {_p}
+        send "/squidgame setredlightgreenlightbarrier2" to {_p}
+        send "/squidgame join" to {_p}
+        send "/squidgame leave" to {_p}
+        send "/squidgame stop" to {_p}
+    else:
+        send "/squidgame join" to {_p}
+        send "/squidgame leave" to {_p}
+
+function setLobbySquidgame(p: player, type: text):
+    {_p} has permission yml value "Permission_Squidgame" from "config"
+    if gameHasStarted() = false:
+        if {_type} = "main":
+            set {squidgame::mainLobby} to {_p}'s location
+            send "{@Logo} %yml value "Message_MainLobby_Changed" from "messages"%" to {_p}
+        else if {_type} = "dorm":
+            set {squidgame::dormLobby} to {_p}'s location
+            send "{@Logo} %yml value "Message_DormLobby_Changed" from "messages"%" to {_p}
+        else if {_type} = "redlightgreenlight":
+            set {squidgame::redLightGreenLightLobby} to {_p}'s location
+            send "{@Logo} %yml value "Message_RedLightGreenLight_Lobby_Changed" from "messages"%" to {_p}
+    else:
+        send "{@Logo} %yml value "Message_GameStarted_NotAllowed" from "messages"%" to {_p}
+
+function setRedLightGreenLightBarrier(p: player, type: integer):
+    {_p} has permission yml value "Permission_Squidgame" from "config"
+    if gameHasStarted() = false:
+        if {_type} = 1:
+            set {squidgame::redlightgreenlightbarrier1} to {_p}'s location
+            send "{@Logo} %yml value "Message_RedLightGreenLight_Barrier_Changed" from "messages"%" to {_p}
+        else if {_type} = 2:
+            set {squidgame::redlightgreenlightbarrier2} to {_p}'s location
+            send "{@Logo} %yml value "Message_RedLightGreenLight_Barrier_Changed" from "messages"%" to {_p}
+    else:
+        send "{@Logo} %yml value "Message_GameStarted_NotAllowed" from "messages"%" to {_p}
+
+function joinSquidgame(p: player):
+    if {squidgame::status} is not "game":
+        if metadata "status" of {_p} is not "queue":
+            if checkGameSettings({_p}) = true:
+                set metadata "status" of {_p} to "queue"
+                add {_p} to {squidgame::players::*}
+                heal {_p}
+                set {_p}'s food level to 20
+                reset walk speed of {_p}
+                reset flight speed of {_p}
+                set gamemode of {_p} to survival
+                clear inventory of {_p}
+                teleport {_p} to {squidgame::dormLobby}
+                set flight mode of {_p} to false
+                reveal {_p} to all players
+                waitingToStartSquidgame()
+        else:
+            send "{@Logo} %yml value "Message_Already_InQueue" from "messages"%" to {_p}
+
+    else:
+        send "{@Logo} %yml value "Message_Already_Started" from "messages"%" to {_p}
+
+function leaveSquidgame(p: player):
+    if {squidgame::status} is "queue":
+        if metadata "status" of {_p} is "queue":
+            remove {_p} from {squidgame::players::*}
+            send "{@Logo} %yml value "Message_RemoveFromQueue" from "messages"%" to {_p}
+            #bungeecord connect?
+            teleport {_p} to {squidgame::mainLobby}
+        else:
+            send "{@Logo} %yml value "Message_NotInQueue" from "messages"%" to {_p}
+    else if {squidgame::status} is "game":
+        if metadata "status" of {_p} is "game":
+            #killPlayer({_p})
+            set {_message} to yml value "Message_PlayerLeave" from "messages"
+            replace all "{PLAYER}" in {_message} with "%{_p}%"
+            send {_message} to {squidgame::players::*}
+            remove {_p} from {squidgame::players::*}
+            teleport {_p} to {squidgame::mainLobby}
+
+        else if metadata "status" of {_p} is "spectator":
+            #bungeecord connect?
+            teleport {_p} to {squidgame::mainLobby}
+    clear metadata "status" of {_p}
+    clear metadata "location" of {_p}
+
+function checkGameSettings(p: player) :: boolean:
+    if {squidgame::dormLobby} is set:
+        if {squidgame::redLightGreenLightLobby} is set:
+            if {squidgame::mainLobby} is set:
+                if {squidgame::redlightgreenlightbarrier1} and {squidgame::redlightgreenlightbarrier2} are set:
+                    if isMessageYmlSet({_p}) = true:
+                        return true
+                else:
+                    send "{@Logo} %yml value "Message_RedLightGreenLight_Barrier_NotSet" from "messages"%" to {_p}
+            else:
+                if {_p} has permission yml value "Permission_Squidgame" from "config":
+                    send "{@Logo} %yml value "Message_MainLobby_NotSet" from "messages"%" to {_p}
+                else:
+                    send "{@Logo} %yml value "Message_Settings_NotReady" from "messages"%" to {_p}
+                return false
+        else:
+            if {_p} has permission yml value "Permission_Squidgame" from "config":
+                send "{@Logo} %yml value "Message_RedLightGreenLight_Lobby_NotSet" from "messages"%" to {_p}
+            else:
+                send "{@Logo} %yml value "Message_Settings_NotReady" from "messages"%" to {_p}
+            return false
+    else:
+        if {_p} has permission yml value "Permission_Squidgame" from "config":
+            send "{@Logo} %yml value "Message_DormLobby_NotSet" from "messages"%" to {_p}
+        else:
+            send "{@Logo} %yml value "Message_Settings_NotReady" from "messages"%" to {_p}
+        return false
+
+function waitingToStartSquidgame():
+    {squidgame::status} is not set
+    set {squidgame::status} to "queue"
+    while {squidgame::status} is not "game":
+        set {_timer} to yml value "Timer_Waiting_GameToStart_InSeconds" from "config"
+        while {_timer} >= 1:
+            if {_timer} = 30 or 20 or 10 or 5 or 4 or 3 or 2 or 1:
+                set {_message} to yml value "Message_TimerStart" from "messages"
+                replace all "{TIMER}" in {_message} with "%{_timer}%"
+                send {_message} to {squidgame::players::*}
+            if {_timer} = 1:
+                wait a second
+                if size of {squidgame::players::*} >= yml value "Minimum_Player" from "config":
+                    startSquidgame()
+                else:
+                    if size of {squidgame::players::*} <= 0:
+                        stop
+                    else:
+                        send "{@Logo} %yml value "Message_MinimumPlayerNeeded" from "messages"%" to {squidgame::players::*}
+            remove 1 from {_timer}
+            wait a second
+            
+function startSquidgame():
+    set {squidgame::status} to "game"
+    set metadata "status" of {squidgame::players::*} to "game"
+    teleport {squidgame::players::*} to {squidgame::redLightGreenLightLobby}
+    startRedLightGreenLight(world of a random player out of {squidgame::players::*})
+
+function gameHasStarted() :: boolean:
+    if {squidgame::status} is "game":
+        return true
+    else:
+        return false
+
+function checkFinish():
+    {squidgame::status} is "game"
+    if size of {squidgame::players::*} = 1:
+        set {_message} to yml value "Message_PlayerWon" from "messages"
+        replace all "{PLAYER}" in {_message} with "%{squidgame::players::*}%"
+        send {_message} to {squidgame::players::*}
+        clear metadata "location" of {_p}
+        set metadata "status" of {_p} to "spectator"
+        teleport {squidgame::players::*} to {squidgame::mainLobby}
+        set {_finish} to true
+    else if size of {squidgame::players::*} < 1:
+        send yml value "Message_NobodyWon" from "messages" to {squidgame::players::*}
+        set {_finish} to true
+    if {_finish} is set:
+        stopGame()
+
+function stopGame():
+    clear {squidgame::status}
+    wait 5 seconds
+    reset walk speed of {squidgame::spectators::*}, {squidgame::players::*}
+    reset flight speed of {squidgame::spectators::*}, {squidgame::players::*}
+    set flight mode of {squidgame::spectators::*}, {squidgame::players::*} to false
+    teleport {squidgame::spectators::*} to {squidgame::mainLobby}
+    clear {squidgame::players::*}
+    clear {squidgame::spectators::*}
+    clear {squidgame::canmove}
+    clear {squidgame::timer}
+
+function killPlayer(p: player):
+    remove {_p} from {squidgame::players::*}
+    add {_p} to {squidgame::spectators::*}
+    set flight mode of {_p} to true
+    heal {_p}
+    set {_world} to world of {_p}
+    set flight mode of {_p} to true
+    hide {_p} from {squidgame::players::*}
+    set walk speed of {_p} to 0.5
+    set flight speed of {_p} to 0.5
+    play sound "gunshot" with volume 0.2 at {_p}
+    send "{@Logo} %yml value "Message_PlayerDead" from "messages"%" to {_p}
+    send title "%yml value "Message_PlayerDead" from "messages"%" with subtitle "" to {_p} for 3 seconds with fadein 0.0 second and fade out 1 second
+    checkFinish()
+
+function isMessageYmlSet(p: player) :: boolean:
+    set {_list::*} to all yaml nodes of "messages"
+    if size of {_list::*} != 26:
+        if {_p} has permission yml value "Permission_Squidgame" from "config":
+            send "&cThe messages.yml file has errors ##1A" to {_p}
+        else:
+            send "{@Logo} %yml value "Message_Settings_NotReady" from "messages"% ##1A" to {_p}
+        return false
+    loop {_list::*}:
+        set {_value} to yml value "%loop-value%" from "messages"
+        if {_value} is not set:
+            if {_p} has permission yml value "Permission_Squidgame" from "config":
+                send "&cThe messages.yml file has errors ##1B" to {_p}
+            else:
+                send "{@Logo} %yml value "Message_Settings_NotReady" from "messages"% ##1B" to {_p}
+            return false
+        else if length of {_value} < 3:
+            if {_p} has permission yml value "Permission_Squidgame" from "config":
+                send "&cThe messages.yml file has message that are too short ##1C" to {_p}
+            else:
+                send "{@Logo} %yml value "Message_Settings_NotReady" from "messages"% ##1C" to {_p}
+            return false
+    return true
+
+command /squidgame [<text>]:
+    aliases: sg
+    trigger:
+        commandManager(arg-1, player)
+
+command /r:
+    trigger:
+        make player execute command "/sk reload squidgame/"
+
+on load:
+    load yaml "plugins/SquidGame/config.yml" as "config"
+    load yaml "plugins/SquidGame/messages.yml" as "messages"
+

@@ -1,0 +1,56 @@
+on quit:
+    leaveSquidgame(player)
+
+on weather change:
+    {squidgame::status} is not "game"
+    clear weather
+
+on hunger level change:
+    metadata "status" of player is set
+    cancel event
+
+on break:
+    metadata "status" of player is set
+    cancel event
+
+on place:
+    metadata "status" of player is set
+    cancel event
+
+on damage:
+    metadata "status" of victim is "queue" or "spectator"
+    cancel event
+
+on death of player:
+    {squidgame::status} is "game"
+    metadata "status" of victim is "game"
+    set death message to ""
+    if attacker is a player:
+        set {_message} to yml value "Message_PlayerEliminatedByPlayer" from "messages"
+        replace all "{VICTIM}" in {_message} with "%victim%"
+        replace all "{ATTACKER}" in {_message} with "%attacker%"
+        send {_message} to {squidgame::players::*}
+    else:
+        set {_message} to yml value "Message_PlayerEliminated" from "messages"
+        replace all "{VICTIM}" in {_message} with "%victim%"
+        send {_message} to {squidgame::players::*}
+    set metadata "status" of victim to "spectator"
+    force the victim to respawn
+
+on respawn:
+    if {squidgame::status} is "game":
+        set {_loc} to metadata "location" of player
+        teleport player to location(x-coordinate of {_loc}, y-coordinate of {_loc}+10, z-coordinate of {_loc}, world("%world of player%"))
+        killPlayer(player)
+    else:
+        teleport player to {squidgame::mainLobby}
+
+#on TabComplete:
+#    if event-string contains "/squidgame":
+#        if player has permission "%yml value "Permission_Squidgame" from "config%":
+#            add "join" to completions
+#            add "quit" to completions
+#            add "setdormlobby" to completions
+#        else:
+#            add "join" to completions
+#            add "quit" to completions

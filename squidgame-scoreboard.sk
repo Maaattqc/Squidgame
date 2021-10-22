@@ -1,0 +1,10 @@
+function setScoreBoardSquidgame(p: player, type: text):
+    #if {_type} = "queueWaiting":
+        
+    #else if {_type} = "queueStarting":
+
+    #else if {_type} = "rlglWaiting":
+
+    #else if {_type} = "rlglGame":
+
+    #else if {_type} = "rlglSpectator":

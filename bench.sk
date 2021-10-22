@@ -1,0 +1,54 @@
+options:
+    RefreshTime: 10000
+
+command /bench:
+    trigger:
+        broadcast "&c================================================"
+
+        
+
+        set {_addTime} to now
+        loop {@RefreshTime} times:
+            set {_r} to a random integer between 1 and 9999
+            set {_%{_r}%} to "test"
+
+        set {_addTime} to difference between {_addTime} and now
+        broadcast "&e[VARIABLE TEMPORAIRE] &fRefresh {@RefreshTime} var in: &a%{_addTime}%" 
+        wait a second
+
+        set {_addTime} to now
+        loop {@RefreshTime} times:
+            set {_r} to a random integer between 1 and 9999
+            set metadata "%{_r}%" of player to "test"
+
+        set {_addTime} to difference between {_addTime} and now
+        broadcast "&e[VARIABLE METADATA] &fRefresh {@RefreshTime} var in: &a%{_addTime}%" 
+        wait a second
+        
+        set {_addTime} to now
+        loop {@RefreshTime} times:
+            set {_r} to a random integer between 1 and 9999
+            set {%{_r}%} to "test"
+
+        set {_addTime} to difference between {_addTime} and now
+        broadcast "&e[VARIABLE NORMAL] &fRefresh {@RefreshTime} var in: &a%{_addTime}%" 
+        wait a second
+
+        set {_addTime} to now
+        loop {@RefreshTime} times:
+            set {_r} to a random integer between 1 and 9999
+            add "%{_r}%" to scoreboard tags of player
+
+        set {_addTime} to difference between {_addTime} and now
+        broadcast "&e[SCOREBOARD TAGS] &fRefresh {@RefreshTime} var in: &a%{_addTime}%" 
+        wait a second
+
+command /bench2:
+    trigger: # faire un bechmark de if
+        add "queue=inGame22" to scoreboard tags of player
+        if player has scoreboard tag "queue=inGame":    
+            broadcast "oui"
+        broadcast "%scoreboard tags of player%"
+
+on quit:
+    clear scoreboard tags of player
