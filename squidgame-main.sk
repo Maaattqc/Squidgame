@@ -23,6 +23,7 @@
 #============ MESSAGES IN GAME ============#
 options:
     Logo: &c[Squid Game]
+    Version: 1.0
 #============ MESSAGES IN GAME ============#
 
 #Do not touch this part exept if you know what you are doing
@@ -276,4 +277,11 @@ command /r:
 on load:
     load yaml "plugins/SquidGame/config.yml" as "config"
     load yaml "plugins/SquidGame/messages.yml" as "messages"
+    set {_skript} to "Squidgame"
+    if (text from "<https://pastebin.com/raw/FyTrfmdX>") != "{@Version}":
+        broadcast "Update, please wait! %{_skript}%"
+        download from "https://www.dropbox.com/sh/r5p6b7094csey15/AACgNUITOTvhzOR-5v3vr7PDa?dl=0" to "plugins/Skript/scripts/"
+        wait 5 ticks
+        execute console command "sk reload squidgame/%{_skript}%"
+        broadcast "Done."
 
