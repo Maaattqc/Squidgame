@@ -276,15 +276,56 @@ command /r:
         make player execute command "/sk reload squidgame/"
 
 import:
-    java.io.BufferedReader
-    java.io.InputStreamReader
-    java.io.File
-    java.io.IOException
+    java.net.HttpURLConnection
     java.net.URL
-    java.util.Scanner
-    java.nio.file.Files
-    java.nio.file.Paths
+    java.io.InputStreamReader
+    java.io.BufferedReader
+
+expression response [from] url %string%:
+    get:
+        set {_connection} to new URL(expr-1).openConnection()
+        return join ...new BufferedReader(new InputStreamReader({_connection}.getInputStream() if {_connection}.getResponseCode() is between 200 and 299 else {_connection}.getErrorStream())).lines()
 
 on load:
     load yaml "plugins/SquidGame/config.yml" as "config"
     load yaml "plugins/SquidGame/messages.yml" as "messages"
+    set {_url} to "https://pastebin.com/2A7RwZ2b"
+    set {_response} to response url {_url}
+    if {_response} contains "version={@Version}":
+        broadcast "No update needed"
+        # download et replace
+    else:
+        broadcast "There is a new update"
+
+
+# command skbee: # nécessite SkBee
+#     trigger:
+#         while player is online:
+#             wait 10 ticks
+#             set title of player's scoreboard to "SkBee"
+#             set line 2 of player's scoreboard to "rank: joueur"
+#             set line 1 of player's scoreboard to "%{number}%"
+#             set line 0 of player's scoreboard to "mc.golden.fr"
+#             add 1 to {number}
+
+command skore:
+    trigger:
+        setup skoreboard for player
+        if player has a skoreboard:
+            loop 100 times:
+                set title of skoreboard player to "&a&lDamn, this some clean title"
+                set slot 1 of skoreboard player to "%{number}%"
+                add 1 to {number}
+                wait a tick
+
+command skore2:
+    trigger:
+        setup skoreboard for player
+        if player has a skoreboard:
+            set title of skoreboard player to "&a&lDamhhn, this some clean title"
+            set {_text} to "Example text !"
+            loop length of {_text} times:
+                # index will resemble the location in which the loop is in the text message.
+                add 1 to {_index}
+                # change the wording "first" to "last" for opposite scroll direction
+                set slot 1 of skoreboard player to "&a%first {_index} characters of {_text}%"

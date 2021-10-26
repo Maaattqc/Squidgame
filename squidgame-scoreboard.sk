@@ -1,6 +1,16 @@
 function setScoreBoardSquidgame(p: player, type: text):
-    #if {_type} = "queueWaiting":
-        
+    if {_type} = "queueWaiting":
+        if metadata "status" of {_p} is "queue":
+            setup skoreboard for {_p}
+            {_p} has a skoreboard
+            set title of skoreboard {_p} to "&a&lDamn, this some clean title"
+            set slot 2 of skoreboard {_p} to "Status: waiting"
+            set slot 2 of skoreboard {_p} to "&2"
+            set slot 2 of skoreboard {_p} to "0 seconds remaining"
+            set slot 2 of skoreboard {_p} to "&2"
+            set slot 2 of skoreboard {_p} to "{PLAYERS} / 456"
+            set slot 2 of skoreboard {_p} to "&2"
+            set slot 1 of skoreboard {_p} to "%yml value "Server_Ip" from "config"%"
     #else if {_type} = "queueStarting":
 
     #else if {_type} = "rlglWaiting":
