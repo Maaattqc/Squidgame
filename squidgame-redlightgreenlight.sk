@@ -56,14 +56,18 @@ function startDoll():
 
 function startTimer():
     set {squidgame::timer} to true
-    set {_timer} to yml value "Timer_RedLightGreenLight_InSeconds" from "config"
-    while {_timer} >= 1:
+    set {_message_Logo} to yml value "Message_Logo" from "messages"
+    set {_timer_Count} to yml value "Timer_RedLightGreenLight_InSeconds" from "config"
+    set {_message_Timer} to yml value "Message_Timer_RedLightGreenLight" from "messages"
+    while {_timer_Count} >= 1:
         if {squidgame::status} is "game":
             wait a second
-            set {_message} to yml value "Message_Timer_RedLightGreenLight" from "messages"
-            replace all "{TIMER}" in {_message} with "%{_timer}%"
-            send "%yml value "Message_Logo" from "message"% %{_message}%" to {squidgame::players::*}
-            remove 1 from {_timer}
+            {squidgame::status} is "game"
+            if {_timer_Count} = 120 or 100 or 80 or 60 or 50 or 40 or 30 or 20 or 15 or 10 or 5 or 4 or 3 or 2 or 1:
+                set {_messageReal} to {_message_Timer}
+                replace all "{TIMER}" in {_messageReal} with "%{_timer_Count}%"
+                send "%{_message_Logo}% %{_messageReal}%" to {squidgame::players::*}
+            remove 1 from {_timer_Count}
         else:
             stop
     clear {squidgame::timer}

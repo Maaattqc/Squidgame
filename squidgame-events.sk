@@ -1,5 +1,8 @@
 on quit:
-    set quit message to "%leaveSquidgame(player)%"
+    {squidgame::status} is "queue" or "game"
+    metadata "status" of player is "game" or "queue"
+    set quit message to ""
+    leaveSquidgame(player)
 
 on weather change:
     {squidgame::status} is not "game"
