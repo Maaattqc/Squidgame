@@ -1,9 +1,6 @@
-options:
-    Logo: &c[Squid Game]
-
 function startRedLightGreenLight(world: world):
     {squidgame::status} is "game"
-    send "{@Logo} %yml value "Message_RedLightGreenLight_Instruction" from "messages"%" to {squidgame::players::*}
+    send "%yml value "Message_Logo" from "messages"% %yml value "Message_RedLightGreenLight_Instruction" from "messages"%" to {squidgame::players::*}
     installBlock({_world}, barrier)
     wait 2 seconds # 10 or more
     installBlock({_world}, air)
@@ -65,7 +62,7 @@ function startTimer():
             wait a second
             set {_message} to yml value "Message_Timer_RedLightGreenLight" from "messages"
             replace all "{TIMER}" in {_message} with "%{_timer}%"
-            send {_message} to {squidgame::players::*}
+            send "%yml value "Message_Logo" from "message"% %{_message}%" to {squidgame::players::*}
             remove 1 from {_timer}
         else:
             stop

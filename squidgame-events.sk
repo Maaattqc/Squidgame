@@ -1,5 +1,5 @@
 on quit:
-    leaveSquidgame(player)
+    set quit message to "%leaveSquidgame(player)%"
 
 on weather change:
     {squidgame::status} is not "game"
@@ -18,9 +18,11 @@ on place:
     cancel event
 
 on damage:
-    metadata "status" of victim is "queue" or "spectator"
-    cancel event
-
+    if metadata "status" of attacker is "queue" or "spectator":
+        cancel event
+    else if metadata "status" of victim is "queue" or "spectator":
+        cancel event
+        
 on death of player:
     {squidgame::status} is "game"
     metadata "status" of victim is "game"
@@ -33,7 +35,7 @@ on death of player:
         set {_message} to yml value "Message_PlayerEliminated" from "messages"
         replace all "{VICTIM}" in {_message} with "%victim%"
         
-    send {_message} to {squidgame::players::*}
+    send "%yml value "Message_Logo" from "messages"% %{_message}% &f(&c%size of {squidgame::players::*}%&f/&c%yml value "Maximum_Player" from "config"%&f)" to {squidgame::players::*}
     set metadata "status" of victim to "spectator"
     force the victim to respawn
 
