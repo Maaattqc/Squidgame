@@ -134,6 +134,7 @@ function checkGameSettings(p: player) :: boolean:
         if {squidgame::redLightGreenLightLobby} is set:
             if {squidgame::mainLobby} is set:
                 if {squidgame::redlightgreenlightbarrier1} and {squidgame::redlightgreenlightbarrier2} are set:
+                    # if bungeecord ip is set and if server exist
                     return true
                 else:
                     send "%yml value "Message_Logo" from "messages"% %yml value "Message_RedLightGreenLight_Barrier_NotSet" from "messages"%" to {_p}
@@ -267,7 +268,7 @@ function isMessageYmlSet(p: player) :: boolean:
                     send {_message} to {_p}
             return false
     set {_list::*} to all yaml nodes of "config"
-    if size of {_list::*} != 8:
+    if size of {_list::*} != 9:
         if {_p} has permission {_permission}:
             send "&cThe config.yml file has errors ##2A" to {_p}
         else:
@@ -276,6 +277,10 @@ function isMessageYmlSet(p: player) :: boolean:
             else:
                 send {_message} to {_p}
         return false
+    else:
+        set {_server} to yml value "BungeeCord_LobbyServer" from "config"
+        if server "%{_server}%" exist:
+            broadcast "test"
     return true
 
 command /squidgame [<text>]:
@@ -331,9 +336,6 @@ on load:
 #             set line 0 of player's scoreboard to "mc.golden.fr"
 #             add 1 to {number}
 
-command test:
-    trigger:
-        broadcast "%walking speed of player%"
 command skore:
     trigger:
         setup skoreboard for player

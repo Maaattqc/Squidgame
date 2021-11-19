@@ -1,3 +1,8 @@
+on join:
+    checkGameSettings(player) = true
+    yaml value "BungeeCord" from "config" is true #faire ce check dans checkgamesettings?
+    joinSquidgame(player)
+
 on quit:
     {squidgame::status} is "queue" or "game"
     metadata "status" of player is "game" or "queue"
